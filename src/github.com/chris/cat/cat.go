@@ -16,13 +16,13 @@ const exitsuccess = 0
 const exitfailure = 1
 
 
-func cat(file *os.File) error {
+func cat(reader io.Reader) error {
 
     var n int
     var err error
     bytes := make([]byte, 65536)
 
-    for n, err = file.Read(bytes); err == nil; n, err = file.Read(bytes) {
+    for n, err = reader.Read(bytes); err == nil; n, err = reader.Read(bytes) {
         if _, err = os.Stdout.Write(bytes[0:n]); err != nil {
             break
         }
