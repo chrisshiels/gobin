@@ -47,6 +47,12 @@ func makepredicatetype(filetype string) (p predicate, err error) {
         }, nil
     }
 
+    if filetype == "l" {
+        return func(path string, info os.FileInfo) (matched bool, err error) {
+            return info.Mode() & os.ModeSymlink == os.ModeSymlink, nil
+        }, nil
+    }
+
     return nil, fmt.Errorf("Unrecognised type %s", filetype)
 }
 
