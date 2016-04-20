@@ -50,22 +50,26 @@ func main() {
     if len(os.Args[1:]) == 0 {
         err = tac(os.Stdin)
         _ = os.Stdin.Close()
+        if err != nil {
+            fmt.Fprintf(os.Stderr, "tac: %s\n", err)
+            os.Exit(exitfailure)
+        }
     } else {
         for _, filename := range os.Args[1:] {
             var file *os.File
-            if file, err = os.Open(filename); err == nil {
-                err = tac(file)
-                _ = file.Close()
-                if err != nil {
-                    break
-                }
+
+            if file, err = os.Open(filename); err != nil {
+                fmt.Fprintf(os.Stderr, "tac: %s\n", err)
+                continue
+            }
+
+            err = tac(file)
+            _ = file.Close()
+            if err != nil {
+                fmt.Fprintf(os.Stderr, "tac: %s\n", err)
+                continue
             }
         }
-    }
-
-    if err != nil {
-        fmt.Printf("Error:  %s\n", err)
-        os.Exit(exitfailure)
     }
 
     os.Exit(exitsuccess)

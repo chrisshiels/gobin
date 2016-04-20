@@ -28,37 +28,40 @@ func cat(reader io.Reader) error {
         }
     }
 
-    if (err != io.EOF) {
-        return err
+    if err == io.EOF {
+        err = nil
     }
 
-    return nil
+    return err
 }
 
 
 func main() {
-
     var err error
 
     if len(os.Args[1:]) == 0 {
         err = cat(os.Stdin)
         _ = os.Stdin.Close()
+        if err != nil {
+            fmt.Fprintf(os.Stderr, "cat: %s\n", err)
+            os.Exit(exitfailure)
+        }
     } else {
         for _, filename := range os.Args[1:] {
             var file *os.File
-            if file, err = os.Open(filename); err == nil {
-                err = cat(file)
-                _ = file.Close()
-                if err != nil {
-                    break
-                }
+
+            if file, err = os.Open(filename); err != nil {
+                fmt.Fprintf(os.Stderr, "cat: %s\n", err)
+                continue
+            }
+
+            err = cat(file)
+            _ = file.Close()
+            if err != nil {
+                fmt.Fprintf(os.Stderr, "cat: %s\n", err)
+                continue
             }
         }
-    }
-
-    if err != nil {
-        fmt.Printf("Error:  %s\n", err)
-        os.Exit(exitfailure)
     }
 
     os.Exit(exitsuccess)

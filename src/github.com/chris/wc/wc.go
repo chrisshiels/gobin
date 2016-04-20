@@ -68,7 +68,7 @@ func main() {
         if nl, nw, nm, nc, err = wc(os.Stdin); err == nil {
             fmt.Printf("%8d%8d%8d%8d\n", nl, nw, nm, nc)
         } else { 
-            fmt.Printf("Error:  %s\n", err)
+            fmt.Fprintf(os.Stderr, "wc: %s\n", err)
             os.Exit(exitfailure)
         }
     } else {
@@ -76,14 +76,14 @@ func main() {
             var file *os.File
 
             if file, err = os.Open(filename); err != nil {
-                fmt.Printf("wc:  %s\n", err)
+                fmt.Fprintf(os.Stderr, "wc: %s\n", err)
                 continue
             }
 
             nl, nw, nm, nc, err = wc(file)
             _ = file.Close()
             if err != nil {
-                fmt.Printf("wc:  %s\n", err)
+                fmt.Fprintf(os.Stderr, "wc: %s\n", err)
                 continue
             }
 

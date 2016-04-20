@@ -46,7 +46,6 @@ func grep(pattern string, reader io.Reader) error {
 
 
 func main() {
-
     var err error
 
     if len(os.Args[1:]) == 0 {
@@ -55,22 +54,26 @@ func main() {
     } else if len(os.Args[1:]) == 1 {
         err = grep(os.Args[1], os.Stdin)
         _ = os.Stdin.Close()
+        if err != nil {
+            fmt.Fprintf(os.Stderr, "grep: %s\n", err)
+            os.Exit(exitfailure)
+        }
     } else {
         for _, filename := range os.Args[2:] {
             var file *os.File
-            if file, err = os.Open(filename); err == nil {
-                err = grep(os.Args[1], file)
-                _ = file.Close()
-                if err != nil {
-                    break
-                }
+
+            if file, err = os.Open(filename); err != nil {
+                fmt.Fprintf(os.Stderr, "grep: %s\n", err)
+                continue
+            }
+
+            err = grep(os.Args[1], file)
+            _ = file.Close()
+            if err != nil {
+                fmt.Fprintf(os.Stderr, "grep: %s\n", err)
+                continue
             }
         }
-    }
-
-    if err != nil {
-        fmt.Printf("Error:  %s\n", err)
-        os.Exit(exitfailure)
     }
 
     os.Exit(exitsuccess)

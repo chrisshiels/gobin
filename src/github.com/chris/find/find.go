@@ -107,7 +107,7 @@ func (f *find) parse(args []string) error {
 func (f *find) walkfunc() filepath.WalkFunc {
     return func(path string, info os.FileInfo, err error) error {
         if err != nil {
-            fmt.Fprintf(os.Stderr, "Error: % s\n", err)
+            fmt.Fprintf(os.Stderr, "find: % s\n", err)
         } else {
             for _, predicate := range f.listpredicates {
                 var matched bool
@@ -146,12 +146,12 @@ func main() {
     var err error
 
     if err = f.parse(os.Args[1:]); err != nil {
-        fmt.Fprintf(os.Stderr, "Error:  %s\n", err)
+        fmt.Fprintf(os.Stderr, "find: %s\n", err)
         os.Exit(exitfailure)
     }
 
     if err = f.walk(); err != nil {
-        fmt.Fprintf(os.Stderr, "Error:  %s\n", err)
+        fmt.Fprintf(os.Stderr, "find: %s\n", err)
         os.Exit(exitfailure)
     }
 

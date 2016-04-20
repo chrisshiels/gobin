@@ -38,7 +38,6 @@ func ls(dirname string) error {
 
 
 func main() {
-
     var err error
 
     if len(os.Args[1:]) == 0 {
@@ -60,7 +59,7 @@ func main() {
     }
 
     if err != nil {
-        fmt.Printf("Error:  %s\n", err)
+        fmt.Fprintf(os.Stderr, "ls: %s\n", err)
         os.Exit(exitfailure)
     }
 
