@@ -21,7 +21,6 @@ const exitfailure = 1
 
 
 func expandescapesequences(s string) (expandeds string, err error) {
-
     var reader *strings.Reader = strings.NewReader(s) 
     var ch1, ch2, ch3, ch4 rune
     var buffer bytes.Buffer

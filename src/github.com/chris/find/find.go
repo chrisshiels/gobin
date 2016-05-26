@@ -141,7 +141,6 @@ func (f *find) walk() error {
 
 
 func main() {
-
     var f find
     var err error
 

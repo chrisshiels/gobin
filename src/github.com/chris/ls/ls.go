@@ -17,15 +17,12 @@ const exitfailure = 1
 
 
 func ls(dirname string) error {
-
     fileinfos, err := ioutil.ReadDir(dirname)
-
     if err != nil {
         return err
     }
 
     for _, fileinfo := range fileinfos {
-
         var symbol string = ""
         if fileinfo.Mode().IsDir() {
             symbol = "/"

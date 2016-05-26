@@ -19,7 +19,6 @@ const exitfailure = 1
 
 
 func wc(reader io.Reader) (nl int, nw int, nm int, nc int, err error) {
-
     type wordstate int
 
     const (

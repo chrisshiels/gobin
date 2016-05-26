@@ -19,7 +19,6 @@ const exitfailure = 1
 
 
 func grep(pattern string, reader io.Reader) error {
-
     var scanner *bufio.Scanner
     var err error
 

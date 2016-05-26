@@ -15,6 +15,5 @@ const exitfailure = 1
 
 
 func main() {
-
     os.Exit(exitsuccess)
 }

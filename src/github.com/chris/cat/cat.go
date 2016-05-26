@@ -17,11 +17,10 @@ const exitfailure = 1
 
 
 func cat(reader io.Reader) error {
+    bytes := make([]byte, 65536)
 
     var n int
     var err error
-    bytes := make([]byte, 65536)
-
     for n, err = reader.Read(bytes); err == nil; n, err = reader.Read(bytes) {
         if _, err = os.Stdout.Write(bytes[0:n]); err != nil {
             break
