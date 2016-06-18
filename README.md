@@ -17,9 +17,13 @@ to learn a new language...
 
     host$ ./bin/grep ^ro /etc/passwd
 
+    host$ ./bin/head -n 5 /etc/group /etc/passwd
+
     host$ ./bin/ls bin src
 
     host$ ./bin/tac ./src/github.com/chrisshiels/gobin/cat/cat.go | ./bin/tac
+
+    host$ ./bin/tail -f /var/log/cron
 
     host$ ./bin/true ; echo $?
 
