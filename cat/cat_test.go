@@ -1,4 +1,4 @@
-// 'echo_test.go'.
+// 'cat_test.go'.
 // Chris Shiels.
 
 
@@ -24,57 +24,60 @@ func Test_main(t *testing.T) {
             []string { "command" },
             "",
             0,
-            "testdata/t1.out",
-            "testdata/t1.err",
+            "",
+            "",
         },
         {
-            []string { "command", "-n" },
-            "",
+            []string { "command" },
+            "testdata/hello.txt",
             0,
-            "testdata/t2.out",
-            "testdata/t2.err",
+            "testdata/hello.txt",
+            "",
         },
         {
-            []string { "command", "a", "b", "c" },
-            "",
+            []string { "command" },
+            "testdata/lines.txt",
             0,
-            "testdata/t3.out",
-            "testdata/t3.err",
+            "testdata/lines.txt",
+            "",
         },
         {
-            []string { "command", "-n", "a", "b", "c" },
-            "",
+            []string { "command" },
+            "testdata/donquijote.txt",
             0,
-            "testdata/t4.out",
-            "testdata/t4.err",
+            "testdata/donquijote.txt",
+            "",
         },
         {
-            []string { "command", "-e", `a\nb\nc` },
+            []string { "command", "testdata/hello.txt" },
             "",
             0,
-            "testdata/t5.out",
-            "testdata/t5.err",
+            "testdata/hello.txt",
+            "",
         },
         {
-            []string { "command", "-n", "-e", `a\nb\nc` },
+            []string { "command", "testdata/lines.txt" },
             "",
             0,
-            "testdata/t6.out",
-            "testdata/t6.err",
+            "testdata/lines.txt",
+            "",
         },
         {
-            []string { "command", "-e", `\e[31mHello\e[0m` },
+            []string { "command", "testdata/donquijote.txt" },
             "",
             0,
-            "testdata/t7.out",
-            "testdata/t7.err",
+            "testdata/donquijote.txt",
+            "",
         },
         {
-            []string { "command", "-n", "-e", `\e[31mHello\e[0m` },
+            []string { "command",
+                       "testdata/donquijote.txt",
+                       "testdata/hello.txt",
+                       "testdata/lines.txt" },
             "",
             0,
-            "testdata/t8.out",
-            "testdata/t8.err",
+            "testdata/concatenated.txt",
+            "",
         },
     }
 
@@ -87,7 +90,7 @@ func Test_main(t *testing.T) {
         if test.stdinfilename != "" {
             bytesstdin, err = ioutil.ReadFile(test.stdinfilename)
             if err != nil {
-                t.Errorf("echo_test: %s", err)
+                t.Errorf("cat_test: %s", err)
                 continue
             }
         }
@@ -96,7 +99,7 @@ func Test_main(t *testing.T) {
         if test.expectstdoutfilename != "" {
             bytesexpectstdout, err = ioutil.ReadFile(test.expectstdoutfilename)
             if err != nil {
-                t.Errorf("echo_test: %s", err)
+                t.Errorf("cat_test: %s", err)
                 continue
             }
         }
@@ -105,7 +108,7 @@ func Test_main(t *testing.T) {
         if test.expectstderrfilename != "" {
             bytesexpectstderr, err = ioutil.ReadFile(test.expectstderrfilename)
             if err != nil {
-                t.Errorf("echo_test: %s", err)
+                t.Errorf("cat_test: %s", err)
                 continue
             }
         }

@@ -1,4 +1,4 @@
-// 'echo_test.go'.
+// 'find_test.go'.
 // Chris Shiels.
 
 
@@ -21,60 +21,59 @@ func Test_main(t *testing.T) {
         expectstderrfilename string
     }{
         {
-            []string { "command" },
+            []string { "command",
+                       "testdata/d",
+                       "-print" },
             "",
             0,
             "testdata/t1.out",
             "testdata/t1.err",
         },
         {
-            []string { "command", "-n" },
+            []string { "command",
+                       "testdata/d",
+                       "-name",
+                       "[a-b]",
+                       "-print" },
             "",
             0,
             "testdata/t2.out",
             "testdata/t2.err",
         },
         {
-            []string { "command", "a", "b", "c" },
+            []string { "command",
+                       "testdata/d",
+                       "-type",
+                       "d",
+                       "-print" },
             "",
             0,
             "testdata/t3.out",
             "testdata/t3.err",
         },
         {
-            []string { "command", "-n", "a", "b", "c" },
+            []string { "command",
+                       "testdata/d",
+                       "-type",
+                       "f",
+                       "-print" },
             "",
             0,
             "testdata/t4.out",
             "testdata/t4.err",
         },
         {
-            []string { "command", "-e", `a\nb\nc` },
+            []string { "command",
+                       "testdata/d",
+                       "-name",
+                       "[a-z]",
+                       "-type",
+                       "d",
+                       "-print" },
             "",
             0,
             "testdata/t5.out",
             "testdata/t5.err",
-        },
-        {
-            []string { "command", "-n", "-e", `a\nb\nc` },
-            "",
-            0,
-            "testdata/t6.out",
-            "testdata/t6.err",
-        },
-        {
-            []string { "command", "-e", `\e[31mHello\e[0m` },
-            "",
-            0,
-            "testdata/t7.out",
-            "testdata/t7.err",
-        },
-        {
-            []string { "command", "-n", "-e", `\e[31mHello\e[0m` },
-            "",
-            0,
-            "testdata/t8.out",
-            "testdata/t8.err",
         },
     }
 
@@ -87,7 +86,7 @@ func Test_main(t *testing.T) {
         if test.stdinfilename != "" {
             bytesstdin, err = ioutil.ReadFile(test.stdinfilename)
             if err != nil {
-                t.Errorf("echo_test: %s", err)
+                t.Errorf("find_test: %s", err)
                 continue
             }
         }
@@ -96,7 +95,7 @@ func Test_main(t *testing.T) {
         if test.expectstdoutfilename != "" {
             bytesexpectstdout, err = ioutil.ReadFile(test.expectstdoutfilename)
             if err != nil {
-                t.Errorf("echo_test: %s", err)
+                t.Errorf("find_test: %s", err)
                 continue
             }
         }
@@ -105,7 +104,7 @@ func Test_main(t *testing.T) {
         if test.expectstderrfilename != "" {
             bytesexpectstderr, err = ioutil.ReadFile(test.expectstderrfilename)
             if err != nil {
-                t.Errorf("echo_test: %s", err)
+                t.Errorf("find_test: %s", err)
                 continue
             }
         }

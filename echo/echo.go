@@ -128,10 +128,10 @@ func echo(stdout io.Writer, flage bool, flagn bool, args []string) error {
 }
 
 
-func maindo(stdin io.Reader,
-            stdout io.Writer,
-            stderr io.Writer,
-            args []string) (exitstatus int) {
+func _main(stdin io.Reader,
+           stdout io.Writer,
+           stderr io.Writer,
+           args []string) (exitstatus int) {
 
     flagset := flag.NewFlagSet(args[0], flag.ExitOnError)
 
@@ -160,5 +160,5 @@ func maindo(stdin io.Reader,
 
 
 func main() {
-    os.Exit(maindo(os.Stdin, os.Stdout, os.Stderr, os.Args))
+    os.Exit(_main(os.Stdin, os.Stdout, os.Stderr, os.Args))
 }
