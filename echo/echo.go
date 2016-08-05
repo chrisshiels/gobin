@@ -21,7 +21,7 @@ const exitfailure = 1
 
 
 func expandescapesequences(s string) (expandeds string, err error) {
-    var reader *strings.Reader = strings.NewReader(s) 
+    var reader *strings.Reader = strings.NewReader(s)
     var ch1, ch2, ch3, ch4 rune
     var buffer bytes.Buffer
     var r rune
@@ -108,7 +108,7 @@ func expandescapesequences(s string) (expandeds string, err error) {
 }
 
 
-func echo(flage bool, flagn bool, args []string) error {
+func echo(stdout io.Writer, flage bool, flagn bool, args []string) error {
     var err error
 
     s := strings.Join(args, " ")
@@ -119,31 +119,46 @@ func echo(flage bool, flagn bool, args []string) error {
         }
     }
 
-    fmt.Print(s)
+    fmt.Fprint(stdout, s)
     if (!flagn) {
-        fmt.Println()
+        fmt.Fprintln(stdout)
     }
 
     return nil
 }
 
 
+func _main(stdin io.Reader,
+           stdout io.Writer,
+           stderr io.Writer,
+           args []string) (exitstatus int) {
+
+    flagset := flag.NewFlagSet(args[0], flag.ExitOnError)
+
+    flagset.Usage = func() {
+        fmt.Fprintln(stderr, "Usage:  echo [ -e ] [ -n ] [ args ... ]")
+        flagset.PrintDefaults()
+    }
+    flage := flagset.Bool("e",
+                          false,
+                          "Enable interpretation of backslash escapes")
+    flagn := flagset.Bool("n",
+                          false,
+                          "Do not output the trailing newline")
+
+    // Note flagset.Parse() will also handle '-h' and '--help' and will exit
+    // with exit status 2.
+    flagset.Parse(args[1:])
+
+    if err := echo(stdout, *flage, *flagn, flagset.Args()); err != nil {
+        fmt.Fprintf(stderr, "echo: %s\n", err)
+        return exitfailure
+    }
+
+    return exitsuccess
+}
+
+
 func main() {
-    flag.Usage = func() {
-        fmt.Println("Usage:  echo [ -e ] [ -n ] [ args ... ]")
-        flag.PrintDefaults()
-    }
-    flage := flag.Bool("e", false, "Enable interpretation of backslash escapes")
-    flagn := flag.Bool("n", false, "Do not output the trailing newline")
-
-    // Note flag.Parse() will also handle '-h' and '--help' and will exit with
-    // exit status 2.
-    flag.Parse()
-
-    if err := echo(*flage, *flagn, flag.Args()); err != nil {
-        fmt.Fprintf(os.Stderr, "echo: %s\n", err)
-        os.Exit(exitfailure)
-    }
-
-    os.Exit(exitsuccess)
+    os.Exit(_main(os.Stdin, os.Stdout, os.Stderr, os.Args))
 }

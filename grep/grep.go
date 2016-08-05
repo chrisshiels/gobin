@@ -18,7 +18,7 @@ const exitsuccess = 0
 const exitfailure = 1
 
 
-func grep(pattern string, reader io.Reader) error {
+func grep(pattern string, reader io.Reader, writer io.Writer) error {
     var scanner *bufio.Scanner
     var err error
 
@@ -32,7 +32,7 @@ func grep(pattern string, reader io.Reader) error {
             return err
         }
         if matched {
-            fmt.Println(scanner.Text())
+            fmt.Fprintln(writer, scanner.Text())
         }
     }
 
@@ -44,36 +44,43 @@ func grep(pattern string, reader io.Reader) error {
 }
 
 
-func main() {
+func _main(stdin io.Reader,
+           stdout io.Writer,
+           stderr io.Writer,
+           args []string) (exitstatus int) {
     var err error
 
-    if len(os.Args[1:]) == 0 {
-        fmt.Fprintln(os.Stderr, "Usage:  grep pattern [ file ... ]")
-        os.Exit(exitsuccess)
-    } else if len(os.Args[1:]) == 1 {
-        err = grep(os.Args[1], os.Stdin)
-        _ = os.Stdin.Close()
+    if len(args[1:]) == 0 {
+        fmt.Fprintln(stderr, "Usage:  grep pattern [ file ... ]")
+        return exitsuccess
+    } else if len(args[1:]) == 1 {
+        err = grep(args[1], stdin, stdout)
         if err != nil {
-            fmt.Fprintf(os.Stderr, "grep: %s\n", err)
-            os.Exit(exitfailure)
+            fmt.Fprintf(stderr, "grep: %s\n", err)
+            return exitfailure
         }
     } else {
-        for _, filename := range os.Args[2:] {
+        for _, filename := range args[2:] {
             var file *os.File
 
             if file, err = os.Open(filename); err != nil {
-                fmt.Fprintf(os.Stderr, "grep: %s\n", err)
+                fmt.Fprintf(stderr, "grep: %s\n", err)
                 continue
             }
 
-            err = grep(os.Args[1], file)
+            err = grep(args[1], file, stdout)
             _ = file.Close()
             if err != nil {
-                fmt.Fprintf(os.Stderr, "grep: %s\n", err)
+                fmt.Fprintf(stderr, "grep: %s\n", err)
                 continue
             }
         }
     }
 
-    os.Exit(exitsuccess)
+    return exitsuccess
+}
+
+
+func main() {
+    os.Exit(_main(os.Stdin, os.Stdout, os.Stderr, os.Args))
 }

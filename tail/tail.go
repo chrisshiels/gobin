@@ -20,14 +20,16 @@ const exitfailure = 1
 
 
 type tailer struct {
+    stdout io.Writer
     filename string
     reader *bufio.Reader
 }
 
 
-func newtailer(filename string, file *os.File) *tailer {
-    return &tailer{ filename: filename,
-                    reader: bufio.NewReader(file) }
+func newtailer(stdout io.Writer, filename string, reader io.Reader) *tailer {
+    return &tailer{ stdout: stdout,
+                    filename: filename,
+                    reader: bufio.NewReader(reader) }
 }
 
 
@@ -50,11 +52,11 @@ func (t *tailer) tail(nlines int) error {
 
     if linen >= nlines {
         for n := linen % nlines; n < nlines; n++ {
-            fmt.Println(lines[n])
+            fmt.Fprintln(t.stdout, lines[n])
         }
     }
     for n := 0; n < linen % nlines; n++ {
-        fmt.Println(lines[n])
+        fmt.Fprintln(t.stdout, lines[n])
     }
 
     return nil
@@ -83,7 +85,7 @@ func (t *tailer) follow() error {
     for s, err = t.reader.ReadString('\n');
         err == nil;
         s, err = t.reader.ReadString('\n') {
-        fmt.Println(s[0:len(s) - 1])
+        fmt.Fprintln(t.stdout, s[0:len(s) - 1])
     }
 
     if err == io.EOF {
@@ -93,44 +95,54 @@ func (t *tailer) follow() error {
 }
 
 
-func main() {
-    flag.Usage = func() {
-        fmt.Println("Usage:  tail [ -n n ] [ -f ] [ file ... ]")
+func _main(stdin io.Reader,
+           stdout io.Writer,
+           stderr io.Writer,
+           args []string) (exitstatus int) {
+
+    flagset := flag.NewFlagSet(args[0], flag.ExitOnError)
+
+    flagset.Usage = func() {
+        fmt.Fprintln(stdout, "Usage:  tail [ -n n ] [ -f ] [ file ... ]")
         flag.PrintDefaults()
     }
-    flagf := flag.Bool("f", false, "Follow appended output by file descriptor")
-    flagn := flag.Int("n", 10, "Output the last n lines")
+    flagf := flagset.Bool("f",
+                          false,
+                          "Follow appended output by file descriptor")
+    flagn := flagset.Int("n",
+                         10,
+                         "Output the last n lines")
 
-    // Note flag.Parse() will also handle '-h' and '--help' and will exit with
-    // exit status 2.
-    flag.Parse()
+    // Note flagset.Parse() will also handle '-h' and '--help' and will exit
+    // with exit status 2.
+    flagset.Parse(args[1:])
 
 
     var tailers []*tailer
 
-    if len(flag.Args()) == 0 {
-        tailer := newtailer("-", os.Stdin)
+    if len(flagset.Args()) == 0 {
+        tailer := newtailer(stdout, "-", stdin)
         tailer.tail(*flagn)
         tailers = append(tailers, tailer)
     } else {
-        for i, filename := range flag.Args() {
+        for i, filename := range flagset.Args() {
             file, err := os.Open(filename)
             if err != nil {
-                fmt.Fprintf(os.Stderr, "tail: %s\n", err)
+                fmt.Fprintf(stderr, "tail: %s\n", err)
                 continue
             }
 
-            if len(flag.Args()) > 1 {
+            if len(flagset.Args()) > 1 {
                 if i != 0 {
-                    fmt.Println()
+                    fmt.Fprintln(stdout)
                 }
-                fmt.Printf("==> %s <==\n", filename)
+                fmt.Fprintf(stdout, "==> %s <==\n", filename)
             }
 
-            tailer := newtailer(filename, file)
+            tailer := newtailer(stdout, filename, file)
             err = tailer.tail(*flagn)
             if err != nil {
-                fmt.Fprintf(os.Stderr, "tail: %s\n", err)
+                fmt.Fprintf(stderr, "tail: %s\n", err)
                 continue
             }
             tailers = append(tailers, tailer)
@@ -138,7 +150,7 @@ func main() {
     }
 
     if len(tailers) == 0 || !*flagf {
-        os.Exit(0)
+        return 0
     }
 
     // Update tailers[0] so the most recent tailer as at index 0.
@@ -150,7 +162,7 @@ func main() {
 
             canfollow, err := tailer.canfollow()
             if err != nil {
-                fmt.Fprintf(os.Stderr, "tail: %s\n", err)
+                fmt.Fprintf(stderr, "tail: %s\n", err)
                 continue
             }
 
@@ -158,16 +170,16 @@ func main() {
                 continue
             }
 
-            if len(flag.Args()) > 1 {
+            if len(flagset.Args()) > 1 {
                 if i != 0 {
-                    fmt.Println()
-                    fmt.Printf("==> %s <==\n", tailer.filename)
+                    fmt.Fprintln(stdout)
+                    fmt.Fprintf(stdout, "==> %s <==\n", tailer.filename)
                 }
             }
 
             err = tailer.follow()
             if err != nil {
-                fmt.Fprintf(os.Stderr, "tail: %s\n", err)
+                fmt.Fprintf(stderr, "tail: %s\n", err)
                 continue
             }
 
@@ -179,5 +191,10 @@ func main() {
         time.Sleep(time.Second)
     }
 
-    os.Exit(exitsuccess)
+    return exitsuccess
+}
+
+
+func main() {
+    os.Exit(_main(os.Stdin, os.Stdout, os.Stderr, os.Args))
 }

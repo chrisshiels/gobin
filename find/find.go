@@ -7,6 +7,7 @@ package main
 
 import (
     "fmt"
+    "io"
     "os"
     "path/filepath"
 )
@@ -19,22 +20,27 @@ const exitfailure = 1
 type predicate func(path string, info os.FileInfo) (matched bool, err error)
 
 
-func makepredicatename(name string) (p predicate, err error) {
+func makepredicatename(stdout io.Writer,
+                       stderr io.Writer,
+                       name string) (p predicate, err error) {
     return func(path string, info os.FileInfo) (matched bool, err error) {
         return filepath.Match(name, filepath.Base(path))
     }, nil
 }
 
 
-func makepredicateprint() (p predicate, err error) {
+func makepredicateprint(stdout io.Writer,
+                        stderr io.Writer) (p predicate, err error) {
     return func(path string, info os.FileInfo) (matched bool, err error) {
-        fmt.Println(path)
+        fmt.Fprintln(stdout, path)
         return true, nil
     }, nil
 }
 
 
-func makepredicatetype(filetype string) (p predicate, err error) {
+func makepredicatetype(stdout io.Writer,
+                       stderr io.Writer,
+                       filetype string) (p predicate, err error) {
     if filetype == "d" {
         return func(path string, info os.FileInfo) (matched bool, err error) {
             return info.Mode().IsDir(), nil
@@ -63,7 +69,9 @@ type find struct {
 }
 
 
-func (f *find) parse(args []string) error {
+func (f *find) parse(stdout io.Writer,
+                     stderr io.Writer,
+                     args []string) error {
     var i int = 0
 
     for i < len(args) {
@@ -79,12 +87,12 @@ func (f *find) parse(args []string) error {
         var err error
 
         if args[i] == "-name" && i + 1 < len(args) {
-            p, err = makepredicatename(args[i + 1])
+            p, err = makepredicatename(stdout, stderr, args[i + 1])
             i++
         } else if args[i] == "-print" {
-            p, err = makepredicateprint()
+            p, err = makepredicateprint(stdout, stderr)
         } else if args[i] == "-type" && i + 1 < len(args) {
-            p, err = makepredicatetype(args[i + 1])
+            p, err = makepredicatetype(stdout, stderr, args[i + 1])
             i++
         }
 
@@ -104,10 +112,11 @@ func (f *find) parse(args []string) error {
 }
 
 
-func (f *find) walkfunc() filepath.WalkFunc {
+func (f *find) walkfunc(stdout io.Writer,
+                        stderr io.Writer) filepath.WalkFunc {
     return func(path string, info os.FileInfo, err error) error {
         if err != nil {
-            fmt.Fprintf(os.Stderr, "find: % s\n", err)
+            fmt.Fprintf(stderr, "find: % s\n", err)
         } else {
             for _, predicate := range f.listpredicates {
                 var matched bool
@@ -128,9 +137,10 @@ func (f *find) walkfunc() filepath.WalkFunc {
 }
 
 
-func (f *find) walk() error {
+func (f *find) walk(stdout io.Writer,
+                    stderr io.Writer) error {
     for _, path := range f.listpaths {
-        err := filepath.Walk(path, f.walkfunc())
+        err := filepath.Walk(path, f.walkfunc(stdout, stderr))
         if err != nil {
             return err
         }
@@ -140,19 +150,27 @@ func (f *find) walk() error {
 }
 
 
-func main() {
+func _main(stdin io.Reader,
+           stdout io.Writer,
+           stderr io.Writer,
+           args []string) (exitstatus int) {
     var f find
     var err error
 
-    if err = f.parse(os.Args[1:]); err != nil {
-        fmt.Fprintf(os.Stderr, "find: %s\n", err)
-        os.Exit(exitfailure)
+    if err = f.parse(stdout, stderr, args[1:]); err != nil {
+        fmt.Fprintf(stderr, "find: %s\n", err)
+        return exitfailure
     }
 
-    if err = f.walk(); err != nil {
-        fmt.Fprintf(os.Stderr, "find: %s\n", err)
-        os.Exit(exitfailure)
+    if err = f.walk(stdout, stderr); err != nil {
+        fmt.Fprintf(stderr, "find: %s\n", err)
+        return exitfailure
     }
 
-    os.Exit(exitsuccess)
+    return exitsuccess
+}
+
+
+func main() {
+    os.Exit(_main(os.Stdin, os.Stdout, os.Stderr, os.Args))
 }

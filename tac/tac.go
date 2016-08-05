@@ -17,7 +17,7 @@ const exitsuccess = 0
 const exitfailure = 1
 
 
-func tac(reader io.Reader) error {
+func tac(reader io.Reader, writer io.Writer) error {
     var scanner *bufio.Scanner
     var l []string
     var err error
@@ -37,40 +37,47 @@ func tac(reader io.Reader) error {
     }
 
     for i := len(l) - 1; i >= 0; i-- {
-        fmt.Println(l[i])
+        fmt.Fprintln(writer, l[i])
     }
 
     return nil
 }
 
 
-func main() {
+func _main(stdin io.Reader,
+           stdout io.Writer,
+           stderr io.Writer,
+           args []string) (exitstatus int) {
     var err error
 
-    if len(os.Args[1:]) == 0 {
-        err = tac(os.Stdin)
-        _ = os.Stdin.Close()
+    if len(args[1:]) == 0 {
+        err = tac(stdin, stdout)
         if err != nil {
-            fmt.Fprintf(os.Stderr, "tac: %s\n", err)
-            os.Exit(exitfailure)
+            fmt.Fprintf(stderr, "tac: %s\n", err)
+            return exitfailure
         }
     } else {
-        for _, filename := range os.Args[1:] {
+        for _, filename := range args[1:] {
             var file *os.File
 
             if file, err = os.Open(filename); err != nil {
-                fmt.Fprintf(os.Stderr, "tac: %s\n", err)
+                fmt.Fprintf(stderr, "tac: %s\n", err)
                 continue
             }
 
-            err = tac(file)
+            err = tac(file, stdout)
             _ = file.Close()
             if err != nil {
-                fmt.Fprintf(os.Stderr, "tac: %s\n", err)
+                fmt.Fprintf(stderr, "tac: %s\n", err)
                 continue
             }
         }
     }
 
-    os.Exit(exitsuccess)
+    return exitsuccess
+}
+
+
+func main() {
+    os.Exit(_main(os.Stdin, os.Stdout, os.Stderr, os.Args))
 }
