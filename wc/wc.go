@@ -23,7 +23,7 @@ func wc(reader io.Reader) (nl int, nw int, nm int, nc int, err error) {
 
     const (
         outsideword wordstate = iota
-        insideword 
+        insideword
     )
 
     var state wordstate = outsideword
@@ -58,42 +58,50 @@ func wc(reader io.Reader) (nl int, nw int, nm int, nc int, err error) {
 }
 
 
-func main() {
+func _main(stdin io.Reader,
+           stdout io.Writer,
+           stderr io.Writer,
+           args []string) (exitstatus int) {
     var nl, nw, nm, nc int
     var tl, tw, tm, tc int
     var err error
 
-    if len(os.Args[1:]) == 0 {
-        if nl, nw, nm, nc, err = wc(os.Stdin); err == nil {
-            fmt.Printf("%8d%8d%8d%8d\n", nl, nw, nm, nc)
-        } else { 
-            fmt.Fprintf(os.Stderr, "wc: %s\n", err)
-            os.Exit(exitfailure)
+    if len(args[1:]) == 0 {
+        if nl, nw, nm, nc, err = wc(stdin); err == nil {
+            fmt.Fprintf(stdout, "%8d%8d%8d%8d\n", nl, nw, nm, nc)
+        } else {
+            fmt.Fprintf(stderr, "wc: %s\n", err)
+            return exitfailure
         }
     } else {
-        for _, filename := range os.Args[1:] {
+        for _, filename := range args[1:] {
             var file *os.File
 
             if file, err = os.Open(filename); err != nil {
-                fmt.Fprintf(os.Stderr, "wc: %s\n", err)
+                fmt.Fprintf(stderr, "wc: %s\n", err)
                 continue
             }
 
             nl, nw, nm, nc, err = wc(file)
             _ = file.Close()
             if err != nil {
-                fmt.Fprintf(os.Stderr, "wc: %s\n", err)
+                fmt.Fprintf(stderr, "wc: %s\n", err)
                 continue
             }
 
-            fmt.Printf("%8d%8d%8d%8d\t%s\n", nl, nw, nm, nc, filename)
+            fmt.Fprintf(stdout, "%8d%8d%8d%8d\t%s\n", nl, nw, nm, nc, filename)
             tl += nl
             tw += nw
             tm += nm
             tc += nc
         }
-        fmt.Printf("%8d%8d%8d%8d\ttotal\n", tl, tw, tm, tc)
+        fmt.Fprintf(stdout, "%8d%8d%8d%8d\ttotal\n", tl, tw, tm, tc)
     }
 
-    os.Exit(exitsuccess)
+    return exitsuccess
+}
+
+
+func main() {
+    os.Exit(_main(os.Stdin, os.Stdout, os.Stderr, os.Args))
 }
