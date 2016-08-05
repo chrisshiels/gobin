@@ -66,7 +66,7 @@ func Test_main(t *testing.T) {
         if test.stdinfilename != "" {
             bytesstdin, err = ioutil.ReadFile(test.stdinfilename)
             if err != nil {
-                t.Errorf("grep_test: %s", err)
+                t.Errorf("head_test: %s", err)
                 continue
             }
         }
@@ -75,7 +75,7 @@ func Test_main(t *testing.T) {
         if test.expectstdoutfilename != "" {
             bytesexpectstdout, err = ioutil.ReadFile(test.expectstdoutfilename)
             if err != nil {
-                t.Errorf("grep_test: %s", err)
+                t.Errorf("head_test: %s", err)
                 continue
             }
         }
@@ -84,7 +84,7 @@ func Test_main(t *testing.T) {
         if test.expectstderrfilename != "" {
             bytesexpectstderr, err = ioutil.ReadFile(test.expectstderrfilename)
             if err != nil {
-                t.Errorf("grep_test: %s", err)
+                t.Errorf("head_test: %s", err)
                 continue
             }
         }
