@@ -77,7 +77,7 @@ func Test_main(t *testing.T) {
         },
     }
 
-    for  _, test := range tests {
+    for _, test := range tests {
         var bytesstdin, bytesexpectstdout, bytesexpectstderr []byte
         var stdin, expectstdout, expectstderr *bytes.Buffer
         var stdout, stderr *bytes.Buffer
@@ -128,7 +128,6 @@ func Test_main(t *testing.T) {
                      expectstdout.String(),
                      test.expectstderrfilename,
                      expectstderr.String())
-
         }
     }
 }
